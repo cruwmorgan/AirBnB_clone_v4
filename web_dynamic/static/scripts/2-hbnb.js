@@ -1,8 +1,8 @@
-$(document).ready(function(){
+$(document).ready(function () {
   $('.amenities.popover ul li input[type=checkbox]').on('change', function () {
-    let dict = [];
-    const myId = [];
-    let jCheck = $(this).is(':checked');
+    const dict = [];
+    const myID = [];
+    const jCheck = $(this).is(':checked');
     if (jCheck) {
       $('input[type=checkbox]:checked').each(function () {
         dict.push($(this).attr('data-name'));
@@ -18,8 +18,8 @@ $(document).ready(function(){
       $('.amenities h4').html('&nbsp;');
     } else {
       $('.amenities h4').text(dict.join(', '));
-    }       
-    console.log(myId);
+    }
+    console.log(myID);
   });
   const apiUrl = 'http://0.0.0.0:5001/api/v1/status/';
   $.ajax({
@@ -27,11 +27,11 @@ $(document).ready(function(){
     type: 'GET',
     method: 'GET',
     dataType: 'json',
-    success: function(response){
+    success: function (response) {
       $('div#api_status').addClass('available');
     },
-    error: function(){
+    error: function () {
       $('div#api_status').removeClass('available');
     }
   });
-}); 
+});
