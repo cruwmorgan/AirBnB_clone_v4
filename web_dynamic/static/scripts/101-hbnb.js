@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+$(document).ready(function () {
   const $h4Amenities = $('div.amenities h4');
   const $h4Locations = $('div.locations h4');
   const amenitiesFilter = [];
@@ -138,7 +138,33 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         $(data).each(function (index, place) {
-          $('SECTION.places').append('<article><div class="title"><h2>' + place.name + '</h2><div class="price_by_night">$' + place.price_by_night + '</div></div><div class="information"><div class="max_guest"><i class="fa fa-users fa-3x" aria-hidden="true"></i><br />' + place.max_guest + 'Guests</div><div class="number_rooms"><i class="fa fa-bed fa-3x" aria-hidden="true"></i><br />' + place.number_rooms + 'Bedrooms</div><div class="number_bathrooms"><i class="fa fa-bath fa-3x" aria-hidden="true"></i><br />' + place.number_bathrooms + 'Bathroom</div></div><div class="user"><strong>Owner: </strong>' + userDict[place.user_id].first_name + ' ' + userDict[place.user_id].last_name + '</div><div class="description">' + place.description + '</div></article>');
+          $('SECTION.places').append('<article><div class="title"><h2>' + place.name + '</h2><div class="price_by_night">$' + place.price_by_night + '</div></div><div class="information"><div class="max_guest"><i class="fa fa-users fa-3x" aria-hidden="true"></i><br />' + place.max_guest + 'Guests</div><div class="number_rooms"><i class="fa fa-bed fa-3x" aria-hidden="true"></i><br />' + place.number_rooms + 'Bedrooms</div><div class="number_bathrooms"><i class="fa fa-bath fa-3x" aria-hidden="true"></i><br />' + place.number_bathrooms + 'Bathroom</div></div><div class="user"><strong>Owner: </strong>' + userDict[place.user_id].first_name + ' ' + userDict[place.user_id].last_name + '</div><div class="description">' + place.description + '</div>' + '<br /><div class="reviews"><h2 class="reviews"><span class="reviewCount" id="' + place.id + '"> 0 </span>Reviews</h2><span id="' + place.id + '" class="toggle">show</span></div><span class="reviewContent" id="' + place.id + '"></span></article>');
+          const placeId = place.id;
+          $.ajax({
+            type: 'GET',
+            url: 'http://0.0.0.0:5001/api/v1/places/' + placeId + '/reviews/',
+            success: function (reviews) {
+              const $contentSpan = $('span.reviewContent#' + placeId);
+              const $toggleSpan = $('span.toggle#' + placeId);
+              if ($contentSpan.attr('id')) {
+                $(reviews).each(function (idx, review) {
+                  $('span.reviewCount#' + placeId).text(reviews.length + ' ');
+                  $contentSpan.append('<p class="reviewText">' + review.text + '</p>');
+                  $contentSpan.hide();
+                });
+              }
+              $toggleSpan.click(function () {
+                if ($contentSpan) {
+                  $contentSpan.toggle('slow');
+                  if ($toggleSpan.text() === 'hide') {
+                    $toggleSpan.text('show');
+                  } else {
+                    $toggleSpan.text('hide');
+                  }
+                }
+              });
+            }
+          });
         });
       }
     });

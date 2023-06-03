@@ -81,6 +81,10 @@
     height: 65px;
 }
 
+.amenities.popover input, .locations.popover input {
+    margin-right: 10px;
+}
+
 .information .max_guest {
     background: url("../images/icon_group.png") no-repeat top center;
     width: 100px;
@@ -98,4 +102,21 @@
 
 .user {
   margin-bottom: 1.5%;
+}
+
+.reviews {
+    margin-top: 40px;
+}
+
+.reviews h2{
+    font-size: 16px;
+    border-bottom: 1px solid #DDDDDD;
+}
+
+.reviews ul h3{
+    font-size: 14px;
+}
+
+.reviews ul p{
+    font-size: 12px;
 }

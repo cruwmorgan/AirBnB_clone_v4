@@ -11,12 +11,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // amenities checkboxes
   $('div.amenities input').each(function (idx, ele) {
-    let id = $(this).attr('data-id');
-    let name = $(this).attr('data-name');
+    const id = $(this).attr('data-id');
+    const name = $(this).attr('data-name');
 
     // set change method on checkboxes
     $(ele).change(function () {
-      let delimiter = '<span class="delim">, </span>';
+      const delimiter = '<span class="delim">, </span>';
       $('div.amenities h4 span.delim').remove();
 
       if (this.checked) {
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       // add delimeter
-      let length = $('div.amenities h4 > span').length;
+      const length = $('div.amenities h4 > span').length;
       $('div.amenities h4 span').each(function (idx, ele) {
         if (idx < length - 1) {
           $(this).append(delimiter);
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
       type: 'GET',
       url: 'http://0.0.0.0:5001/api/v1/places_search/',
       success: function (data) {
-        let $apiStatus = $('div#api_status');
+        const $apiStatus = $('div#api_status');
         if (data.status === 'OK') {
           $apiStatus.addClass('available');
         } else {
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
       type: 'GET',
       url: 'http://0.0.0.0:5001/api/v1/places_search/',
       success: function (users) {
-        let userDict = {};
+        const userDict = {};
         $(users).each(function (index, user) {
           userDict[user.id] = user;
         });
