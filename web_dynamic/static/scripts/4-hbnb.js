@@ -1,88 +1,100 @@
-$(document).ready(function () {
-  const dict = [];
-  const myID = [];
-  $('.amenities.popover ul li input[type=checkbox]').on('change', function () {
-    const jCheck = $(this).is(':checked');
-    if (jCheck) {
-      $('input[type=checkbox]:checked').each(function () {
-        dict.push($(this).attr('data-name'));
-        myID.push($(this).attr('data-id'));
-      });
-    } else {
-      $('input[type=checkbox]:not(:checked)').each(function () {
-        dict.pop($(this).attr('data-name'));
-        myID.pop($(this).attr('data-id'));
-      });
-    }
-    if (dict.length === 0) {
-      $('.amenities h4').html('&nbsp;');
-    } else {
-      $('.amenities h4').text(dict.join(', '));
-    }
-    console.log(myID);
-  });
-  $('section.filters button').click(function (event) {
-    event.preventDefault();
+document.addEventListener('DOMContentLoaded', function () {
+  const $h4Amenities = $('div.amenities h4');
+  const amenitiesFilter = [];
 
-    $('section.places').text('');
+  // sort in alphabetical order
+  function compare (a, b) {
+    if (a.name.toLowerCase() < b.name.toLowerCase()) { return -1; }
+    if (a.name.toLowerCase() > b.name.toLowerCase()) { return 1; }
+    return 0;
+  }
 
-    const obj = {};
-    obj.amenities = myID;
-    dict(JSON.stringify(obj));
-  });
-  const apiUrl = 'http://0.0.0.0:5001/api/v1/status/';
-  $.ajax({
-    url: apiUrl,
-    type: 'GET',
-    method: 'GET',
-    dataType: 'json',
-    success: function (response) {
-      $('div#api_status').addClass('available');
-    },
-    error: function () {
-      $('div#api_status').removeClass('available');
-    }
-  });
-  $.ajax({
-    url: apiUrl,
-    type: 'POST',
-    method: 'POST',
-    dataType: 'json',
-    data: {},
-    contentType: 'application/json; charset=utf-8',
-    success: function (response) {
-      for (let i = 0; i < response.length; i++) {
-        $('section.places').append(`
-          <article>
-  <div class="title_box">
-    <h2> ${response[i].name}</h2>
-    <div class="price_by_night"> ${response[i].price_by_night} </div>
-  </div>
-  <div class="information">
-    <div class="max_guest">
-      ${response[i].max_guest}
-      ${response[i].max_guest > 1 ? 'Guests' : 'Guest'} 
-    </div>
-    <div class="number_rooms">
-      ${response[i].number_rooms}
-      ${response[i].number_rooms > 1 ? 'Bedrooms' : 'Bedroom'}  
-    </div>
-    <div class="number_bathrooms">
-      ${response[i].number_bathrooms}
-      ${response[i].number_bathrooms > 1 ? 'Bathrooms' : 'Bathroom'}  
-    </div>
-  </div>
-  <div class="user">
-  </div>
-  <div class="description">
-    ${response[i].description}
-  </div>
-</article>
-        `);
+  // amenities checkboxes
+  $('div.amenities input').each(function (idx, ele) {
+    let id = $(this).attr('data-id');
+    let name = $(this).attr('data-name');
+
+    // set change method on checkboxes
+    $(ele).change(function () {
+      let delimiter = '<span class="delim">, </span>';
+      $('div.amenities h4 span.delim').remove();
+
+      if (this.checked) {
+        $h4Amenities.append('<span id=' + id + '>' + name + '</span>');
+        amenitiesFilter.push(id);
+      } else {
+        $('span#' + id).remove();
+        amenitiesFilter.splice(amenitiesFilter.indexOf(id), 1);
       }
-    },
-    error: function (xhr, status) {
-      console.log('error ' + status);
-    }
+
+      // add delimeter
+      let length = $('div.amenities h4 > span').length;
+      $('div.amenities h4 span').each(function (idx, ele) {
+        if (idx < length - 1) {
+          $(this).append(delimiter);
+        }
+      });
+    });
   });
+
+  $(function () {
+    // API status
+    $.ajax({
+      type: 'GET',
+      url: 'http://0.0.0.0:5001/api/v1/places_search/',
+      success: function (data) {
+        let $apiStatus = $('div#api_status');
+        if (data.status === 'OK') {
+          $apiStatus.addClass('available');
+        } else {
+          $apiStatus.removeClass('available');
+        }
+      }
+    });
+
+    // Fetch and sort places
+    $.ajax({
+      type: 'POST',
+      contentType: 'application/json',
+      url: 'http://0.0.0.0:5001/api/v1/places_search/',
+      data: JSON.stringify({}),
+      success: function (data) {
+        data.sort(compare);
+        populatePlaces(data);
+      }
+    });
+  });
+
+  // display places according to all filters
+  $('section.filters button').click(function () {
+    $.ajax({
+      type: 'POST',
+      contentType: 'application/json',
+      url: 'http://0.0.0.0:5001/api/v1/places_search/',
+      data: JSON.stringify({'amenities': amenitiesFilter}),
+      success: function (data) {
+        data.sort(compare);
+        populatePlaces(data);
+      }
+
+    });
+  });
+
+  // display places
+  function populatePlaces (data) {
+    $.ajax({
+      type: 'GET',
+      url: 'http://0.0.0.0:5001/api/v1/places_search/',
+      success: function (users) {
+        let userDict = {};
+        $(users).each(function (index, user) {
+          userDict[user.id] = user;
+        });
+
+        $(data).each(function (index, place) {
+          $('SECTION.places').append('<article><div class="title"><h2>' + place.name + '</h2><div class="price_by_night">$' + place.price_by_night + '</div></div><div class="information"><div class="max_guest"><i class="fa fa-users fa-3x" aria-hidden="true"></i><br />' + place.max_guest + 'Guests</div><div class="number_rooms"><i class="fa fa-bed fa-3x" aria-hidden="true"></i><br />' + place.number_rooms + 'Bedrooms</div><div class="number_bathrooms"><i class="fa fa-bath fa-3x" aria-hidden="true"></i><br />' + place.number_bathrooms + 'Bathroom</div></div><div class="user"><strong>Owner: </strong>' + userDict[place.user_id].first_name + ' ' + userDict[place.user_id].last_name + '</div><div class="description">' + place.description + '</div></article>');
+        });
+      }
+    });
+  }
 });

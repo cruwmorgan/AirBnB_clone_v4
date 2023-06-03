@@ -1,13 +1,32 @@
 document.addEventListener('DOMContentLoaded', function () {
   const $h4Amenities = $('div.amenities h4');
+  const $h4Locations = $('div.locations h4');
   const amenitiesFilter = [];
+  const statesFilter = [];
+  const citiesFilter = [];
 
-  // sort in alphabetical order
+  // sort places in alphabetical order
   function compare (a, b) {
     if (a.name.toLowerCase() < b.name.toLowerCase()) { return -1; }
     if (a.name.toLowerCase() > b.name.toLowerCase()) { return 1; }
     return 0;
   }
+
+  // display places according to all filters
+  $('section.filters button').click(function () {
+    $.ajax({
+      type: 'POST',
+      contentType: 'application/json',
+      url: 'http://0.0.0.0:5001/api/v1/places_search/',
+      data: JSON.stringify({'amenities': amenitiesFilter, 'states': statesFilter, 'cities': citiesFilter}),
+      success: function (data) {
+        emptyPlaces();
+        data.sort(compare);
+        populatePlaces(data);
+      }
+
+    });
+  });
 
   // amenities checkboxes
   $('div.amenities input').each(function (idx, ele) {
@@ -37,13 +56,50 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // location checkboxes
+  $('div.locations input').each(function (idx, ele) {
+    let id = $(this).attr('data-id');
+    let name = $(this).attr('data-name');
+    let isClass = $(this).attr('data-class');
+
+    // set change method on checkboxes
+    $(ele).change(function () {
+      let delimiter = '<span class="delim">, </span>';
+      $('div.locations h4 span.delim').remove();
+
+      if (this.checked) {
+        $h4Locations.append('<span id=' + id + '>' + name + '</span>');
+        if (isClass === 'State') {
+          statesFilter.push(id);
+        } else {
+          citiesFilter.push(id);
+        }
+      } else {
+        $('span#' + id).remove();
+        if (isClass === 'State') {
+          statesFilter.splice(statesFilter.indexOf(id), 1);
+        } else {
+          citiesFilter.splice(citiesFilter.indexOf(id), 1);
+        }
+      }
+
+      // add delimeter
+      let length = $('div.locations h4 > span').length;
+      $('div.locations h4 span').each(function (idx, ele) {
+        if (idx < length - 1) {
+          $(this).append(delimiter);
+        }
+      });
+    });
+  });
+
+  // check status of website
   $(function () {
-    // API status
     $.ajax({
       type: 'GET',
       url: 'http://0.0.0.0:5001/api/v1/places_search/',
       success: function (data) {
-        let $apiStatus = $('div#api_status');
+        let $apiStatus = $('DIV#api_status');
         if (data.status === 'OK') {
           $apiStatus.addClass('available');
         } else {
@@ -52,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
-    // Fetch and sort places
+    // call fx's to sort and display places
     $.ajax({
       type: 'POST',
       contentType: 'application/json',
@@ -64,6 +120,11 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
+
+  // remove all tags under section.places
+  function emptyPlaces () {
+    $('SECTION.places').empty();
+  }
 
   // display places
   function populatePlaces (data) {
